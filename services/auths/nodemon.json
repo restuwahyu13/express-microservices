@@ -1,0 +1,9 @@
+{
+	"verbose": true,
+	"ext": "ts,json",
+	"ignore": ["dist/**/*", "node_modules/**/*"],
+	"watch": ["src"],
+	"execMap": {
+		"ts": "ts-node -r tsconfig-paths/register"
+	}
+}

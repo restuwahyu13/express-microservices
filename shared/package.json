@@ -1,0 +1,51 @@
+{
+	"name": "@node/pkg",
+	"version": "0.0.1",
+	"main": "./dist/index.js",
+	"description": "Node shared package library and helpers for any services",
+	"files": [
+		"dist/**/*.js"
+	],
+	"private": true,
+	"scripts": {
+		"cleanup": "rimraf dist",
+		"build": "npm run cleanup && tsc && tsc-alias"
+	},
+	"author": {
+		"name": "Restu Wahyu Saputra",
+		"email": "restuwahyu13@gmail.com",
+		"url": "https://github.com/restuwahyu13"
+	},
+	"maintainers": [
+		"Restu Wahyu Saputra"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/restuwahyu13/express-microservices"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=14",
+		"npm": ">=6"
+	},
+	"devDependencies": {
+		"@types/bcryptjs": "^2.4.2",
+		"@types/jsonwebtoken": "^8.5.8",
+		"@types/node": "^18.0.5",
+		"@types/prettier": "^2.6.3",
+		"@types/rimraf": "^3.0.2",
+		"prettier": "^2.7.1",
+		"rimraf": "^3.0.2",
+		"ts-node": "^10.9.1",
+		"tsc-alias": "^1.6.11",
+		"tsconfig-paths": "^4.0.0",
+		"tslib": "^2.4.0",
+		"typescript": "^4.7.4"
+	},
+	"dependencies": {
+		"bcryptjs": "^2.4.3",
+		"jsonwebtoken": "^8.5.1",
+		"tsyringe": "^4.7.0",
+		"typedi": "^0.10.0"
+	}
+}

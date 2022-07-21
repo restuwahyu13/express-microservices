@@ -1,0 +1,6 @@
+.env
+dist
+node_modules
+services/users/node_modules
+services/roles/node_modules
+services/auths/node_modules

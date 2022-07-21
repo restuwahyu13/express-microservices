@@ -1,0 +1,33 @@
+{
+	"compilerOptions": {
+		"baseUrl": "src",
+		"outDir": "dist",
+		"target": "ESNext",
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+		"typeRoots": ["node_modules/@types/"],
+		"paths": {
+			"*": ["node_modules/"],
+			"@/*": ["*"],
+			"@helpers/*": ["helpers/*"],
+			"@libs/*": ["libs/*"]
+		},
+		"strict": true,
+		"esModuleInterop": true,
+		"downlevelIteration": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"allowUmdGlobalAccess": true,
+		"declaration": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"importHelpers": true,
+		"noUnusedLocals": true,
+		"isolatedModules": false,
+		"noUnusedParameters": false,
+		"noImplicitAny": false,
+		"noImplicitThis": false
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["dist", "node_modules"]
+}
