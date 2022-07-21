@@ -1,112 +1,140 @@
 import { StatusCodes as status } from 'http-status-codes'
-import { Inject, Service, apiResponse, APIResponse, Bcrypt, IPassword, JsonWebToken } from '@node/pkg'
+import { Inject, Service, apiResponse, APIResponse, Bcrypt, IPassword, JsonWebToken, expiredAt } from '@node/pkg'
 
 import { UsersModel } from '@models/model.users'
+import { SecretsModel } from '@models/model.secrets'
+import { RolesModel } from '@models/model.roles'
 import { IUsers } from '@interfaces/interface.users'
 import { DTOLogin, DTORegister, DTOUsersId, DTOUsers } from '@dtos/dto.users'
 
 @Service()
 export class UsersService {
-	constructor(@Inject('UsersModel') private users: UsersModel) {}
+  constructor(@Inject('UsersModel') private users: UsersModel, @Inject('SecretsModel') private secrets: SecretsModel, @Inject('RolesModel') private roles: RolesModel) {}
 
-	async registerUsers(body: DTORegister): Promise<APIResponse> {
-		try {
-			const checkUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
-			if (!checkUser) throw apiResponse(status.BAD_REQUEST, 'Email already taken')
+  async registerUsers(body: DTORegister): Promise<APIResponse> {
+    try {
+      const checkUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
+      if (checkUser) throw apiResponse(status.BAD_REQUEST, `Email ${body.email} already taken`)
 
-			body.password = Bcrypt.hashPassword(body.password)
+      body.password = Bcrypt.hashPassword(body.password)
 
-			const createUsers: IUsers | null = await this.users.model.create(body)
-			if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Register new user account failed')
+      const createUsers: IUsers | null = await this.users.model.create(body)
+      if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Register new user account failed')
 
-			return Promise.resolve(apiResponse(status.OK, 'Register new user account success', 'checkUser', null))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+      return Promise.resolve(apiResponse(status.OK, 'Register new user account success'))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
 
-	async loginUsers(body: DTOLogin): Promise<APIResponse> {
-		try {
-			const getUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
-			if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Email is not registered')
+  async loginUsers(body: DTOLogin): Promise<APIResponse> {
+    try {
+      const getUser: IUsers | null = await this.users.model
+        .findOne({ email: body.email, deletedAt: null })
+        .populate({
+          path: 'roleId',
+          select: '_id name',
+          model: this.roles.model
+        })
+        .lean()
 
-			const isCompare: IPassword = await Bcrypt.comparePassword(body.password, getUser.password)
-			if (!isCompare.success) throw apiResponse(status.BAD_REQUEST, 'Email or password failed')
+      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Email is not registered')
+      if (!getUser.active) throw apiResponse(status.BAD_REQUEST, 'User account is not active, please contact admin')
 
-			const token: Record<string, any> = JsonWebToken.signToken({
-				payload: { id: getUser._id, email: getUser.email },
-				secretOrPrivateKey: process.env.JWT_SECRET as string,
-				options: { expiresIn: '1d', audience: 'node' }
-			})
+      const isCompare: IPassword = await Bcrypt.comparePassword(body.password, getUser.password)
+      if (!isCompare.success) throw apiResponse(status.BAD_REQUEST, 'Email or password failed')
 
-			return Promise.resolve(apiResponse(status.OK, 'Login success', token, null))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+      const token: Record<string, any> = JsonWebToken.signToken({
+        payload: { id: getUser._id, email: getUser.email, role: getUser.roleId['name'] },
+        secretOrPrivateKey: process.env.JWT_SECRET_KEY as string,
+        options: { expiresIn: '1d', audience: 'node' }
+      })
 
-	async createUsers(body: DTOUsers): Promise<APIResponse> {
-		try {
-			const checkUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
-			if (!checkUser) throw apiResponse(status.BAD_REQUEST, 'Email already taken')
+      const isAccessTokenExpired: string = expiredAt(1, 'days')
+      const isRefreshTokenExpired: string = expiredAt(30, 'days') // by default set in 30 days in shared module for jwt libs
 
-			body.password = Bcrypt.hashPassword(body.password)
+      await this.secrets.model.create({
+        ...token,
+        resourceType: 'login',
+        resourceBy: getUser._id,
+        expiredAt: isAccessTokenExpired
+      })
 
-			const createUsers: IUsers | null = await this.users.model.create(body)
-			if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Create new users account failed')
+      const loginRes: Record<string, any> = {
+        ...token,
+        accessTokenExpired: isAccessTokenExpired,
+        refreshTokenExpired: isRefreshTokenExpired,
+        role: getUser.roleId['name']
+      }
 
-			return Promise.resolve(apiResponse(status.OK, 'Create new users account success', 'checkUser', null))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+      return Promise.resolve(apiResponse(status.OK, 'Login success', loginRes, null))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
 
-	async getAllUsers(): Promise<APIResponse> {
-		try {
-			const getAllUsers: IUsers[] = await this.users.model.find({})
+  async createUsers(body: DTOUsers): Promise<APIResponse> {
+    try {
+      const checkUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
+      if (!checkUser) throw apiResponse(status.BAD_REQUEST, 'Email already taken')
 
-			return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, null))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+      body.password = Bcrypt.hashPassword(body.password)
 
-	async getUsersById(params: DTOUsersId): Promise<APIResponse> {
-		try {
-			const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
-			if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
+      const createUsers: IUsers | null = await this.users.model.create(body)
+      if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Create new users account failed')
 
-			return Promise.resolve(apiResponse(status.OK, 'Users already to use', getUser, null))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+      return Promise.resolve(apiResponse(status.OK, 'Create new users account success', 'checkUser', null))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
 
-	async deleteUsersById(params: DTOUsersId): Promise<APIResponse> {
-		try {
-			const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
-			if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
+  async getAllUsers(): Promise<APIResponse> {
+    try {
+      const getAllUsers: IUsers[] = await this.users.model.find({})
 
-			const deleteUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: new Date() })
-			if (!deleteUser) throw apiResponse(status.FORBIDDEN, 'Deleted users data failed')
+      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, null))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
 
-			return Promise.resolve(apiResponse(status.OK, 'Deleted users data success'))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+  async getUsersById(params: DTOUsersId): Promise<APIResponse> {
+    try {
+      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
+      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
 
-	async updateUsersById(body: DTOUsers, params: DTOUsersId): Promise<APIResponse> {
-		try {
-			const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
-			if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
+      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getUser, null))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
 
-			const updateUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, ...body })
-			if (!updateUser) throw apiResponse(status.FORBIDDEN, 'Updated users data failed')
+  async deleteUsersById(params: DTOUsersId): Promise<APIResponse> {
+    try {
+      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
+      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
 
-			return Promise.resolve(apiResponse(status.OK, 'Updated users data success'))
-		} catch (e: any) {
-			return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
-		}
-	}
+      const deleteUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: new Date() })
+      if (!deleteUser) throw apiResponse(status.FORBIDDEN, 'Deleted users data failed')
+
+      return Promise.resolve(apiResponse(status.OK, 'Deleted users data success'))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
+
+  async updateUsersById(body: DTOUsers, params: DTOUsersId): Promise<APIResponse> {
+    try {
+      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
+      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
+
+      const updateUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, ...body })
+      if (!updateUser) throw apiResponse(status.FORBIDDEN, 'Updated users data failed')
+
+      return Promise.resolve(apiResponse(status.OK, 'Updated users data success'))
+    } catch (e: any) {
+      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+    }
+  }
 }

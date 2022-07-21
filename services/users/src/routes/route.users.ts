@@ -1,25 +1,33 @@
-import { Router } from 'express'
+import { Router, Handler } from 'express'
 import { Inject, Route } from '@node/pkg'
 
 import { UsersController } from '@controllers/controller.users'
+import { validator } from '@middlewares/middleware.validator'
+import { AuthMiddleware } from '@middlewares/middleware.auth'
+import { PermissionMiddleware } from '@middlewares/middleware.permission'
+import { DTOLogin, DTORegister } from '@dtos/dto.users'
 
 @Route()
 export class UsersRoute {
-	private router: Router
+  private router: Router
 
-	constructor(@Inject('UsersController') private controller: UsersController) {
-		this.router = Router({ strict: true, caseSensitive: true })
-	}
+  constructor(
+    @Inject('UsersController') private controller: UsersController,
+    @Inject('AuthMiddleware') private auth: AuthMiddleware,
+    @Inject('PermissionMiddleware') private permission: PermissionMiddleware
+  ) {
+    this.router = Router({ strict: true, caseSensitive: true })
+  }
 
-	main(): Router {
-		this.router.post('/auth/register', this.controller.registerUsers())
-		this.router.post('/auth/login', this.controller.loginUsers())
-		this.router.post('/', this.controller.createUsers())
-		this.router.get('/', this.controller.getAllUsers())
-		this.router.get('/', this.controller.getUsersById())
-		this.router.delete('/', this.controller.deleteUsersById())
-		this.router.put('/', this.controller.updateUsersById())
+  main(): Router {
+    this.router.post('/register', [validator(DTORegister)], this.controller.registerUsers())
+    this.router.post('/login', [validator(DTOLogin)], this.controller.loginUsers())
+    this.router.post('/', [this.auth.use(), this.permission.use(['admin'])], this.controller.createUsers())
+    this.router.get('/', [this.auth.use(), this.permission.use(['admin'])], this.controller.getAllUsers())
+    this.router.get('/:id', [this.auth.use(), this.permission.use(['admin', 'user'])], this.controller.getUsersById())
+    this.router.delete('/:id', [this.auth.use(), this.permission.use(['admin'])], this.controller.deleteUsersById())
+    this.router.put('/:id', [this.auth.use(), this.permission.use(['admin'])], this.controller.updateUsersById())
 
-		return this.router
-	}
+    return this.router
+  }
 }

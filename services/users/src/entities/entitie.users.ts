@@ -1,5 +1,5 @@
 import { Container } from '@node/pkg'
-import { Schema, SchemaDefinitionProperty } from 'mongoose'
+import { Schema, SchemaDefinitionProperty, Types } from 'mongoose'
 
 export class UsersEntitie extends Schema {
 	email: SchemaDefinitionProperty = {
@@ -21,9 +21,8 @@ export class UsersEntitie extends Schema {
 	}
 
 	roleId: SchemaDefinitionProperty = {
-		type: String,
-		trim: true,
-		ref: 'roles',
+		type: Types.ObjectId,
+		ref: 'Roles',
 		required: true
 	}
 
@@ -40,6 +39,19 @@ export class UsersEntitie extends Schema {
 	deletedAt: SchemaDefinitionProperty = {
 		type: Date,
 		default: null
+	}
+
+	constructor() {
+		super()
+		this.add({
+			email: this.email,
+			password: this.password,
+			active: this.active,
+			roleId: this.roleId,
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt,
+			deletedAt: this.deletedAt
+		})
 	}
 }
 

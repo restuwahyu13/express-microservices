@@ -1,5 +1,6 @@
 import { Container } from '@node/pkg'
 import { Schema, SchemaDefinitionProperty } from 'mongoose'
+import shortid from 'shortid'
 
 export class RolesEntitie extends Schema {
   name: SchemaDefinitionProperty = {
@@ -12,6 +13,12 @@ export class RolesEntitie extends Schema {
   access: SchemaDefinitionProperty = {
     type: Array<String>,
     required: true
+  }
+
+  userId: SchemaDefinitionProperty = {
+    type: String,
+    ref: 'Users',
+    default: shortid.generate()
   }
 
   createdAt: SchemaDefinitionProperty = {
@@ -34,6 +41,7 @@ export class RolesEntitie extends Schema {
     this.add({
       name: this.name,
       access: this.access,
+      userId: this.userId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt

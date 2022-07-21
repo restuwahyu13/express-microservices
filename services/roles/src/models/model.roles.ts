@@ -8,6 +8,6 @@ export class RolesModel {
   public model: Model<IRoles>
 
   constructor(@Inject('RolesEntitie') private schema: RolesEntitie) {
-    this.model = model('roles', this.schema) as any
+    this.model = model('Roles', this.schema)
   }
 }

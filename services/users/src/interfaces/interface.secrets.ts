@@ -1,4 +1,6 @@
-export interface ISecrets {
+import { Document } from 'mongoose'
+
+export interface ISecrets extends Document {
 	_id: string
 	resourceBy: string
 	resourceType: string

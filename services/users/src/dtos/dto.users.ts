@@ -15,7 +15,7 @@ export class DTORegister {
 	password: string
 
 	@IsNotEmpty()
-	@IsNumber()
+	@IsMongoId()
 	roleId: string
 }
 
