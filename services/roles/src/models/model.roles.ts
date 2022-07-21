@@ -1,13 +1,17 @@
-import { model, Model } from 'mongoose'
-import { Controller, Inject } from '@node/pkg'
+import { model, Model as MongooseModel, models } from 'mongoose'
+import { Model, Inject } from '@node/pkg'
 import { IRoles } from '@interfaces/interface.roles'
 import { RolesEntitie } from '@entities/entitie.roles'
 
-@Controller()
+@Model()
 export class RolesModel {
-  public model: Model<IRoles>
+  public model: MongooseModel<IRoles>
 
-  constructor(@Inject('RolesEntitie') private schema: RolesEntitie) {
-    this.model = model('Roles', this.schema)
+  constructor(@Inject('RolesEntitie') private entitie: RolesEntitie) {
+    if (!models['Roles']) {
+      this.model = model('Roles', this.entitie)
+    } else {
+      this.model = models['Roles']
+    }
   }
 }

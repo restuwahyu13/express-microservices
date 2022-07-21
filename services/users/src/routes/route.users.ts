@@ -5,7 +5,7 @@ import { UsersController } from '@controllers/controller.users'
 import { validator } from '@middlewares/middleware.validator'
 import { AuthMiddleware } from '@middlewares/middleware.auth'
 import { PermissionMiddleware } from '@middlewares/middleware.permission'
-import { DTOLogin, DTORegister } from '@dtos/dto.users'
+import { DTOLogin, DTORefreshToken, DTORegister } from '@dtos/dto.users'
 
 @Route()
 export class UsersRoute {
@@ -27,6 +27,9 @@ export class UsersRoute {
     this.router.get('/:id', [this.auth.use(), this.permission.use(['admin', 'user'])], this.controller.getUsersById())
     this.router.delete('/:id', [this.auth.use(), this.permission.use(['admin'])], this.controller.deleteUsersById())
     this.router.put('/:id', [this.auth.use(), this.permission.use(['admin'])], this.controller.updateUsersById())
+    this.router.post('/refresh', [validator(DTORefreshToken)], this.controller.refreshTokenUsers())
+    this.router.get('/health', [this.auth.use(), this.permission.use(['admin', 'user'])], this.controller.healthTokenUsers())
+    this.router.post('/revoke', [this.auth.use(), this.permission.use(['admin', 'user'])], this.controller.revokeTokenUsers())
 
     return this.router
   }

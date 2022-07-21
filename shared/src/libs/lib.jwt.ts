@@ -26,7 +26,11 @@ export interface IHealthToken {
 export class JsonWebToken {
 	static signToken(config: ISignToken): Record<string, any> {
 		const accessToken: string = jwt.sign(config.payload, config.secretOrPrivateKey, config.options)
-		const refreshToken: string = JsonWebToken.refreshToken(config)
+		const refreshToken: string = JsonWebToken.refreshToken({
+			payload: config.payload,
+			secretOrPrivateKey: config.secretOrPrivateKey,
+			options: { expiresIn: '30d' }
+		})
 		return { accessToken, refreshToken }
 	}
 
@@ -46,7 +50,7 @@ export class JsonWebToken {
 		return 'accessToken healthy'
 	}
 
-	private static refreshToken(config: ISignToken): string {
-		return jwt.sign(config.payload, config.secretOrPrivateKey, { expiresIn: '30d' }) // refreshToken expired 30d
+	static refreshToken(config: ISignToken): string {
+		return jwt.sign(config.payload, config.secretOrPrivateKey, config.options)
 	}
 }

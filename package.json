@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"install:shared": "npm install --prefix shared",
-		"install:auths": "npm install --prefix services/auths",
+		"install:users": "npm install --prefix services/users",
+		"install:roles": "npm install --prefix services/roles",
 		"install": "npm-run-all -p install:*",
 		"build": "./node_modules/.bin/lerna run build"
 	},
