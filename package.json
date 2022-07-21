@@ -1,8 +1,6 @@
 {
-	"name": "tecnical-test",
+	"name": "express-microservices",
 	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
 	"scripts": {
 		"install:shared": "npm install --prefix shared",
 		"install:users": "npm install --prefix services/users",
@@ -10,9 +8,23 @@
 		"install": "npm-run-all -p install:*",
 		"build": "./node_modules/.bin/lerna run build"
 	},
-	"keywords": [],
-	"author": "restuwahyu13",
+	"author": {
+		"name": "Restu Wahyu Saputra",
+		"email": "restuwahyu13@gmail.com",
+		"url": "https://github.com/restuwahyu13"
+	},
+	"maintainers": [
+		"Restu Wahyu Saputra"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/restuwahyu13/express-microservices"
+	},
 	"license": "MIT",
+	"engines": {
+		"node": ">=14",
+		"npm": ">=6"
+	},
 	"devDependencies": {
 		"lerna": "^5.1.8",
 		"npm-run-all": "^4.1.5"
