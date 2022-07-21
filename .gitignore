@@ -1,6 +1,9 @@
-.env
-dist
 node_modules
+shared/node_modules
 services/users/node_modules
 services/roles/node_modules
-services/auths/node_modules
+shared/dist
+services/users/dist
+services/roles/dist
+services/users/.env
+services/roles/.env
