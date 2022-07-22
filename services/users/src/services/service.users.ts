@@ -31,14 +31,7 @@ export class UsersService {
 
   async loginUsers(body: DTOLogin): Promise<APIResponse> {
     try {
-      const getUser: IUsers | null = await this.users.model
-        .findOne({ email: body.email, deletedAt: null })
-        .populate({
-          path: 'roleId',
-          select: '_id name',
-          model: this.roles.model
-        })
-        .lean()
+      const getUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
       if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Email is not registered')
       if (!getUser.active) throw apiResponse(status.BAD_REQUEST, 'User account is not active, please contact admin')
