@@ -2,11 +2,16 @@
 	"name": "express-microservices",
 	"version": "1.0.0",
 	"scripts": {
-		"install:shared": "npm install --prefix shared",
-		"install:users": "npm install --prefix services/users",
-		"install:roles": "npm install --prefix services/roles",
+		"install:shared": "npm install --log-level verbose --prefix shared",
+		"install:users": "npm install --log-level verbose --prefix services/users",
+		"install:roles": "npm install --log-level verbose --prefix services/roles",
+		"build:shared": "npm run build --prefix shared",
+		"build:users": "npm run build --prefix services/users",
+		"build:roles": "npm run build --prefix services/roles",
+		"start:users": "npm run start --prefix services/users",
+		"start:roles": "npm run start --prefix services/roles",
 		"install": "npm-run-all -p install:*",
-		"build": "./node_modules/.bin/lerna run build"
+		"build": "npm-run-all -p build:*"
 	},
 	"author": {
 		"name": "Restu Wahyu Saputra",

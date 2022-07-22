@@ -6,8 +6,8 @@ import { UsersModel } from '@models/model.users'
 import { SecretsModel } from '@models/model.secrets'
 import { RolesModel } from '@models/model.roles'
 import { IUsers } from '@interfaces/interface.users'
-import { DTOLogin, DTORegister, DTOUsersId, DTOUsers, DTOHealthToken, DTORevokeToken, DTORefreshToken } from '@dtos/dto.users'
 import { ISecrets } from '@interfaces/interface.secrets'
+import { DTOLogin, DTORegister, DTOUsersId, DTOUsers, DTOHealthToken, DTORevokeToken, DTORefreshToken } from '@dtos/dto.users'
 
 @Service()
 export class UsersService {

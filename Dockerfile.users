@@ -1,0 +1,39 @@
+####################################
+# STEP ONE - PULL IMAGE
+####################################
+FROM node:16.16.0-buster as image
+USER ${USER}
+WORKDIR /usr/share/app
+COPY ./package.*json /usr/share/app
+COPY . /usr/share/app
+RUN rm -rfd /usr/share/app/services/roles
+
+####################################
+# STEP TWO - UPGRADE SYSTEM
+####################################
+FROM image as upgrade
+RUN apt-get autoremove \
+  && apt-get autoclean \
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install build-essential -y
+
+####################################
+# STEP THREE - INSTALL DEPENDENCY
+####################################
+FROM upgrade as install
+RUN npm cache clean -f \
+  && npm config set fetch-retry-mintimeout 6000000 \
+  && npm config set fetch-retry-maxtimeout 12000000 \
+  && npm install --log-level verbose \
+  && npm run install:shared \
+  && npm run build:shared \
+  && npm run install:users \
+  && npm run build:users
+
+####################################
+# STEP FOUR - EXPOSE PORT
+####################################
+FROM install
+EXPOSE 3000
+CMD npm run start:users

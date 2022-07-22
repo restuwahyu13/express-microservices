@@ -1,0 +1,9 @@
+FROM nginx:latest
+USER ${USER}
+COPY ${PWD}/nginx.conf /etc/nginx/nginx.conf
+RUN apt-get autoremove \
+  && apt-get autoclean \
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install build-essential -y
+EXPOSE 80
