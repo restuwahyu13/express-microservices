@@ -4,8 +4,7 @@
 FROM node:16.16.0-buster as image
 USER ${USER}
 WORKDIR /usr/share/app
-COPY ./package.*json \
-  lerna.json /usr/share/app/
+COPY ./package.*json /usr/share/app
 COPY . /usr/share/app
 RUN rm -rfd /usr/share/app/services/users
 

@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile.users
     restart: always
     ports:
-      - 4000:4000
-    env_file: /services/users/.env
+      - 3000:3000
+    env_file: ./services/users/.env
     depends_on:
       - database
     volumes:
@@ -28,7 +28,7 @@ services:
     restart: always
     ports:
       - 3001:3001
-    env_file: /services/roles/.env
+    env_file: ./services/roles/.env
     depends_on:
       - database
     volumes:
@@ -42,7 +42,6 @@ services:
   database:
     image: mongo:latest
     restart: always
-    env_file: .env
     ports:
       - 27017:27017
     volumes:
