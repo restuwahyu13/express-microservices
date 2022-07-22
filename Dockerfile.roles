@@ -32,7 +32,7 @@ RUN npm cache clean -f \
   && npm run build:roles
 
 ####################################
-# STEP FOUR - EXPOSE IMAGE
+# STEP FOUR - EXPOSE PORT
 ####################################
 FROM install
 EXPOSE 3001

@@ -71,7 +71,6 @@ services:
 # #############################
 volumes:
   database:
-  caching:
 #############################
 # NETWORKS SHARING GROUP
 #############################
