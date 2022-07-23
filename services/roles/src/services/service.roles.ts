@@ -26,6 +26,7 @@ export class RolesService {
   async getAllRoles(query: DTORolePagination): Promise<APIResponse> {
     try {
       if (!query.hasOwnProperty('limit') && !query.hasOwnProperty('offset') && !query.hasOwnProperty('sort')) {
+        query.page = 10
         query.limit = 10
         query.offset = 0
         query.sort = 'asc' ? 1 : -1
@@ -52,7 +53,19 @@ export class RolesService {
         getAllRoles = await this.roles.model.find({}, { __v: 0 }).limit(query.limit).skip(query.offset).sort({ _id: query.sort })
       }
 
-      return Promise.resolve(apiResponse(status.OK, 'Roles already to use', getAllRoles, null))
+      const countData: number = await this.roles.model.count()
+      const totalPage: number = Math.ceil(countData / query.page)
+
+      const pagination: Record<string, any> = {
+        count: countData,
+        limit: +query.limit,
+        offset: +query.offset,
+        currentPage: 1,
+        perPage: +query.page,
+        totalPage: totalPage
+      }
+
+      return Promise.resolve(apiResponse(status.OK, 'Roles already to use', getAllRoles, pagination))
     } catch (e: any) {
       return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }

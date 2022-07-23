@@ -166,6 +166,7 @@ export class UsersService {
   async getAllUsers(query: DTOUsersPagination): Promise<APIResponse> {
     try {
       if (!query.hasOwnProperty('limit') && !query.hasOwnProperty('offset') && !query.hasOwnProperty('sort')) {
+        query.page = 10
         query.limit = 10
         query.offset = 0
         query.sort = 'asc' ? 1 : -1
@@ -192,7 +193,19 @@ export class UsersService {
         getAllUsers = await this.users.model.find({}, { __v: 0 }).limit(query.limit).skip(query.offset).sort({ _id: query.sort })
       }
 
-      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, query))
+      const countData: number = await this.users.model.count()
+      const totalPage: number = Math.ceil(countData / query.page)
+
+      const pagination: Record<string, any> = {
+        count: countData,
+        limit: +query.limit,
+        offset: +query.offset,
+        currentPage: 1,
+        perPage: +query.page,
+        totalPage: totalPage
+      }
+
+      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, pagination))
     } catch (e: any) {
       return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }

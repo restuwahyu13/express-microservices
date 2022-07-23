@@ -32,4 +32,8 @@ export class DTORolePagination {
   @IsOptional()
   @IsBoolean()
   filter: boolean
+
+  @IsOptional()
+  @IsNumber()
+  page: number
 }

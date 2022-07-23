@@ -117,4 +117,8 @@ export class DTOUsersPagination {
   @IsOptional()
   @IsBoolean()
   filter: boolean
+
+  @IsOptional()
+  @IsString()
+  page: number
 }
