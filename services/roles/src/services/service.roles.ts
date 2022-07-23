@@ -3,7 +3,7 @@ import { Inject, Service, apiResponse, APIResponse } from '@node/pkg'
 
 import { RolesModel } from '@models/model.roles'
 import { IRoles } from '@interfaces/interface.roles'
-import { DTORolesId, DTORoles } from '@dtos/dto.roles'
+import { DTORolesId, DTORoles, DTORolePagination } from '@dtos/dto.roles'
 
 @Service()
 export class RolesService {
@@ -23,9 +23,34 @@ export class RolesService {
     }
   }
 
-  async getAllRoles(): Promise<APIResponse> {
+  async getAllRoles(query: DTORolePagination): Promise<APIResponse> {
     try {
-      const getAllRoles: IRoles[] = await this.roles.model.find({})
+      if (!query.hasOwnProperty('limit') && !query.hasOwnProperty('offset') && !query.hasOwnProperty('sort')) {
+        query.limit = 10
+        query.offset = 0
+        query.sort = 'asc' ? 1 : -1
+      }
+
+      let getAllRoles: IRoles[] = []
+
+      if (query.hasOwnProperty('filter') && JSON.parse(query.filter as any) == true) {
+        const schemaFields: string[] = Object.keys(this.roles.model.schema['paths'])
+        const groupQuery: string[] = Object.keys(query)
+
+        const getKey: any = schemaFields.find((val: string) => groupQuery.indexOf(val) !== -1 && val)
+        const getValue: any = schemaFields.find((val: string) => query[val] && val)
+
+        if (!getKey && !getValue) throw apiResponse(status.BAD_REQUEST, 'filter schema field not valid')
+
+        getAllRoles = await this.roles.model
+          .find({}, { __v: 0 })
+          .where({ [getKey]: query[getValue] })
+          .limit(query.limit)
+          .skip(query.offset)
+          .sort({ _id: query.sort })
+      } else {
+        getAllRoles = await this.roles.model.find({}, { __v: 0 }).limit(query.limit).skip(query.offset).sort({ _id: query.sort })
+      }
 
       return Promise.resolve(apiResponse(status.OK, 'Roles already to use', getAllRoles, null))
     } catch (e: any) {
@@ -46,10 +71,7 @@ export class RolesService {
 
   async deleteRolesById(params: DTORolesId): Promise<APIResponse> {
     try {
-      const getRole: IRoles | null = await this.roles.model.findOne({ _id: params.id, deletedAt: null })
-      if (!getRole) throw apiResponse(status.BAD_REQUEST, 'Role data is not exist')
-
-      const deleteRole: any = await this.roles.model.findOneAndUpdate({ _id: getRole._id, deletedAt: new Date() })
+      const deleteRole: any = await this.roles.model.findOneAndUpdate({ _id: params.id, $set: { deletedAt: new Date() } })
       if (!deleteRole) throw apiResponse(status.FORBIDDEN, 'Deleted role data failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Deleted role data success'))
@@ -60,10 +82,7 @@ export class RolesService {
 
   async updateRolesById(body: DTORoles, params: DTORolesId): Promise<APIResponse> {
     try {
-      const getRole: IRoles | null = await this.roles.model.findOne({ _id: params.id, deletedAt: null })
-      if (!getRole) throw apiResponse(status.BAD_REQUEST, 'Role data is not exist')
-
-      const updateRole: any = await this.roles.model.findOneAndUpdate({ _id: getRole._id, $addToSet: { access: body.access } })
+      const updateRole: any = await this.roles.model.findOneAndUpdate({ _id: params.id, deletedAt: null }, { $set: { ...body } })
       if (!updateRole) throw apiResponse(status.FORBIDDEN, 'Updated Role data failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Updated role data success'))

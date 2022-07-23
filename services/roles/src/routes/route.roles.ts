@@ -20,7 +20,7 @@ export class RolesRoute {
   }
 
   main(): Router {
-    this.router.post('/', [this.auth.use(), this.permission.use(['admin']), validator(DTORoles)], this.controller.createRoles())
+    this.router.post('/', [validator(DTORoles)], this.controller.createRoles())
     this.router.get('/', [this.auth.use(), this.permission.use(['admin'])], this.controller.getAllRoles())
     this.router.get('/:id', [this.auth.use(), this.permission.use(['admin']), validator(DTORolesId)], this.controller.getRolesById())
     this.router.delete('/:id', [this.auth.use(), this.permission.use(['admin']), validator(DTORolesId)], this.controller.deleteRolesById())

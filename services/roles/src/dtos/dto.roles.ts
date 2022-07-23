@@ -1,5 +1,4 @@
-import { IsArray, IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsBoolean, IsEmail, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class DTORolesId {
   @IsNotEmpty()
@@ -15,9 +14,22 @@ export class DTORoles {
   @IsNotEmpty()
   @IsString()
   name: string
+}
 
-  @IsNotEmpty()
-  @IsArray()
-  @Type(() => String)
-  access: string[]
+export class DTORolePagination {
+  @IsOptional()
+  @IsNumber()
+  limit: number
+
+  @IsOptional()
+  @IsEmail()
+  offset: number
+
+  @IsOptional()
+  @IsString()
+  sort: any
+
+  @IsOptional()
+  @IsBoolean()
+  filter: boolean
 }

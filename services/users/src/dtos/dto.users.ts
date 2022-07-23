@@ -14,9 +14,13 @@ export class DTORegister {
   @MinLength(8)
   password: string
 
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean
+
   @IsNotEmpty()
-  @IsMongoId()
-  roleId: string
+  @IsString()
+  role: string
 }
 
 export class DTOLogin {
@@ -56,11 +60,11 @@ export class DTOUsers {
 
   @IsOptional()
   @IsBoolean()
-  active?: boolean
+  active: boolean
 
   @IsNotEmpty()
-  @IsMongoId()
-  roleId: string
+  @IsString()
+  role: string
 }
 
 export class DTORefreshToken {
@@ -95,4 +99,22 @@ export class DTORevokeToken {
   @IsNotEmpty()
   @IsString()
   role: string
+}
+
+export class DTOUsersPagination {
+  @IsOptional()
+  @IsNumber()
+  limit: number
+
+  @IsOptional()
+  @IsEmail()
+  offset: number
+
+  @IsOptional()
+  @IsString()
+  sort: any
+
+  @IsOptional()
+  @IsBoolean()
+  filter: boolean
 }

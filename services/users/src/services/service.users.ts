@@ -7,7 +7,8 @@ import { SecretsModel } from '@models/model.secrets'
 import { RolesModel } from '@models/model.roles'
 import { IUsers } from '@interfaces/interface.users'
 import { ISecrets } from '@interfaces/interface.secrets'
-import { DTOLogin, DTORegister, DTOUsersId, DTOUsers, DTOHealthToken, DTORevokeToken, DTORefreshToken } from '@dtos/dto.users'
+import { IRoles } from '@interfaces/interface.roles'
+import { DTOLogin, DTORegister, DTOUsersId, DTOUsers, DTOHealthToken, DTORevokeToken, DTORefreshToken, DTOUsersPagination } from '@dtos/dto.users'
 
 @Service()
 export class UsersService {
@@ -18,9 +19,15 @@ export class UsersService {
       const checkUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
       if (checkUser) throw apiResponse(status.BAD_REQUEST, `Email ${body.email} already taken`)
 
+      const checkRoleName: IRoles = await this.roles.model.findOne({ name: body.role })
+      if (!checkRoleName) throw apiResponse(status.BAD_REQUEST, `Role name ${body.role} is not exist`)
+
+      if (checkRoleName.name == 'admin') body.active = true
+      else body.active = true
+
       body.password = Bcrypt.hashPassword(body.password)
 
-      const createUsers: IUsers | null = await this.users.model.create(body)
+      const createUsers: IUsers | null = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
       if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Register new user account failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Register new user account success'))
@@ -142,9 +149,12 @@ export class UsersService {
       const checkUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null })
       if (!checkUser) throw apiResponse(status.BAD_REQUEST, 'Email already taken')
 
+      const checkRoleName: IRoles = await this.roles.model.findOne({ name: body.role })
+      if (!checkRoleName) throw apiResponse(status.BAD_REQUEST, `Role name ${body.role} is not exist`)
+
       body.password = Bcrypt.hashPassword(body.password)
 
-      const createUsers: IUsers = await this.users.model.create(body)
+      const createUsers: IUsers | null = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
       if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Create new users account failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Create new users account success', 'checkUser', null))
@@ -153,11 +163,36 @@ export class UsersService {
     }
   }
 
-  async getAllUsers(): Promise<APIResponse> {
+  async getAllUsers(query: DTOUsersPagination): Promise<APIResponse> {
     try {
-      const getAllUsers: IUsers[] = await this.users.model.find({})
+      if (!query.hasOwnProperty('limit') && !query.hasOwnProperty('offset') && !query.hasOwnProperty('sort')) {
+        query.limit = 10
+        query.offset = 0
+        query.sort = 'asc' ? 1 : -1
+      }
 
-      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, null))
+      let getAllUsers: IUsers[] = []
+
+      if (query.hasOwnProperty('filter') && JSON.parse(query.filter as any) == true) {
+        const schemaFields: string[] = Object.keys(this.users.model.schema['paths'])
+        const groupQuery: string[] = Object.keys(query)
+
+        const getKey: any = schemaFields.find((val: string) => groupQuery.indexOf(val) !== -1 && val)
+        const getValue: any = schemaFields.find((val: string) => query[val] && val)
+
+        if (!getKey && !getValue) throw apiResponse(status.BAD_REQUEST, 'filter schema field not valid')
+
+        getAllUsers = await this.users.model
+          .find({}, { __v: 0 })
+          .where({ [getKey]: query[getValue] })
+          .limit(query.limit)
+          .skip(query.offset)
+          .sort({ _id: query.sort })
+      } else {
+        getAllUsers = await this.users.model.find({}, { __v: 0 }).limit(query.limit).skip(query.offset).sort({ _id: query.sort })
+      }
+
+      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, query))
     } catch (e: any) {
       return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
@@ -165,10 +200,10 @@ export class UsersService {
 
   async getUsersById(params: DTOUsersId): Promise<APIResponse> {
     try {
-      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
-      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
+      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null }, { __v: 0 })
+      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'User data is not exist')
 
-      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getUser, null))
+      return Promise.resolve(apiResponse(status.OK, 'User already to use', getUser, null))
     } catch (e: any) {
       return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
@@ -176,10 +211,7 @@ export class UsersService {
 
   async deleteUsersById(params: DTOUsersId): Promise<APIResponse> {
     try {
-      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
-      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
-
-      const deleteUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: new Date() })
+      const deleteUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: null }, { active: false, deletedAt: new Date() })
       if (!deleteUser) throw apiResponse(status.FORBIDDEN, 'Deleted users data failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Deleted users data success'))
@@ -190,10 +222,7 @@ export class UsersService {
 
   async updateUsersById(body: DTOUsers, params: DTOUsersId): Promise<APIResponse> {
     try {
-      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null })
-      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Users data is not exist')
-
-      const updateUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, ...body })
+      const updateUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: null }, { $set: { ...body } })
       if (!updateUser) throw apiResponse(status.FORBIDDEN, 'Updated users data failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Updated users data success'))
