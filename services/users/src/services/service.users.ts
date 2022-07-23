@@ -190,6 +190,7 @@ export class UsersService {
         getAllUsers = await this.users.model.find({}, { __v: 0 }).limit(query.limit).skip(query.offset).sort({ _id: query.sort })
       }
 
+      const currentPage: number = 1
       const countData: number = await this.users.model.count()
       const totalPage: number = Math.ceil(countData / query.page)
 
@@ -197,7 +198,7 @@ export class UsersService {
         count: countData,
         limit: +query.limit,
         offset: +query.offset,
-        currentPage: 1,
+        currentPage: +query.offset > 0 ? currentPage + 1 : currentPage,
         perPage: +query.page,
         totalPage: totalPage
       }

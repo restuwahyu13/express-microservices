@@ -53,6 +53,7 @@ export class RolesService {
         getAllRoles = await this.roles.model.find({}, { __v: 0 }).limit(query.limit).skip(query.offset).sort({ _id: query.sort })
       }
 
+      const currentPage: number = 1
       const countData: number = await this.roles.model.count()
       const totalPage: number = Math.ceil(countData / query.page)
 
@@ -60,7 +61,7 @@ export class RolesService {
         count: countData,
         limit: +query.limit,
         offset: +query.offset,
-        currentPage: 1,
+        currentPage: +query.offset > 0 ? currentPage + 1 : currentPage,
         perPage: +query.page,
         totalPage: totalPage
       }
@@ -73,7 +74,7 @@ export class RolesService {
 
   async getRolesById(params: DTORolesId): Promise<APIResponse> {
     try {
-      const getRole: IRoles | null = await this.roles.model.findOne({ _id: params.id, deletedAt: null })
+      const getRole: IRoles | null = await this.roles.model.findOne({ _id: params.id, deletedAt: null }, { __v: 0 })
       if (!getRole) throw apiResponse(status.BAD_REQUEST, 'Role data is not exist')
 
       return Promise.resolve(apiResponse(status.OK, 'Role already to use', getRole, null))
