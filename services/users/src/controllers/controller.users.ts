@@ -11,7 +11,7 @@ export class UsersController {
   registerUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.registerUsers(req.body)
+        const response: APIResponse = await this.service.registerUsers(req.socket.localAddress, req.body)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -22,7 +22,7 @@ export class UsersController {
   loginUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.loginUsers(req.body)
+        const response: APIResponse = await this.service.loginUsers(req.socket.localAddress, req.body)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -33,7 +33,7 @@ export class UsersController {
   refreshTokenUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.refreshTokenUsers(req.body)
+        const response: APIResponse = await this.service.refreshTokenUsers(req.socket.localAddress, req.body)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -44,7 +44,7 @@ export class UsersController {
   healthTokenUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.healthTokenUsers(req['user'] as any)
+        const response: APIResponse = await this.service.healthTokenUsers(req.socket.localAddress, req['user'] as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -55,7 +55,7 @@ export class UsersController {
   revokeTokenUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.revokeTokenUsers(req['user'] as any)
+        const response: APIResponse = await this.service.revokeTokenUsers(req.socket.localAddress, req['user'] as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -66,7 +66,7 @@ export class UsersController {
   createUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.createUsers(req.body)
+        const response: APIResponse = await this.service.createUsers(req.socket.localAddress, req.body)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -77,7 +77,7 @@ export class UsersController {
   getAllUsers(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.getAllUsers(req.query as any)
+        const response: APIResponse = await this.service.getAllUsers(req.socket.localAddress, req.query as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -88,7 +88,7 @@ export class UsersController {
   getUsersById(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.getUsersById(req.params as any)
+        const response: APIResponse = await this.service.getUsersById(req.socket.localAddress, req.params as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -99,7 +99,7 @@ export class UsersController {
   deleteUsersById(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.deleteUsersById(req.params as any)
+        const response: APIResponse = await this.service.deleteUsersById(req.socket.localAddress, req.params as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -110,7 +110,7 @@ export class UsersController {
   updateUsersById(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.updateUsersById(req.body, req.params as any)
+        const response: APIResponse = await this.service.updateUsersById(req.socket.localAddress, req.body, req.params as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)

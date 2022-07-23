@@ -10,16 +10,16 @@ export class AuthMiddleware {
     return async function (req: Request, res: Response, next: NextFunction): Promise<NextFunction | OutgoingMessage> {
       try {
         let headers: IncomingHttpHeaders = req.headers
-        if (!Object.keys(headers).includes('authorization')) throw apiResponse(status.UNAUTHORIZED, 'Authorization is required')
+        if (!Object.keys(headers).includes('authorization')) throw apiResponse('Users Service', req.socket.localAddress, status.UNAUTHORIZED, 'Authorization is required')
 
         const authorization: boolean | undefined = (headers.authorization as string).includes('Bearer')
-        if (!authorization) throw apiResponse(status.UNAUTHORIZED, 'Bearer is required')
+        if (!authorization) throw apiResponse('Users Service', req.socket.localAddress, status.UNAUTHORIZED, 'Bearer is required')
 
         const accessToken: string = (headers.authorization as string).split('Bearer ')[1]
-        if (assert.isUndefined(accessToken as any)) throw apiResponse(status.UNAUTHORIZED, 'Access Token is required')
+        if (assert.isUndefined(accessToken as any)) throw apiResponse('Users Service', req.socket.localAddress, status.UNAUTHORIZED, 'Access Token is required')
 
         const validJwt: string[] = (accessToken as string).split('.')
-        if (validJwt?.length !== 3) throw apiResponse(status.UNAUTHORIZED, 'Access Token format must be jwt')
+        if (validJwt?.length !== 3) throw apiResponse('Users Service', req.socket.localAddress, status.UNAUTHORIZED, 'Access Token format must be jwt')
 
         const decodedToken: Record<string, any> = await JsonWebToken.verifyToken({ accessToken, secretOrPrivateKey: process.env.JWT_SECRET_KEY as string })
         Object.defineProperty(req, 'user', { value: decodedToken, enumerable: true, writable: true })

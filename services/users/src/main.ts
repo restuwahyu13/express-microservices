@@ -82,7 +82,7 @@ class App {
   }
 
   private async globalRoute(): Promise<void> {
-    this.app.all(['/', '/api/v1'], (_req: Request, res: Response): OutgoingMessage => res.status(status.OK).json(apiResponse(status.OK, 'Server Ping !')))
+    this.app.all(['/', '/api/v1'], (req: Request, res: Response): OutgoingMessage => res.status(status.OK).json(apiResponse('Users Service', req.socket.localAddress, status.OK, 'Server Ping !')))
   }
 
   private async run(): Promise<void> {

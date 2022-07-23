@@ -7,23 +7,27 @@ import { DTORolesId, DTORoles, DTORolePagination } from '@dtos/dto.roles'
 
 @Service()
 export class RolesService {
-  constructor(@Inject('RolesModel') private roles: RolesModel) {}
+  private name: string
 
-  async createRoles(body: DTORoles): Promise<APIResponse> {
+  constructor(@Inject('RolesModel') private roles: RolesModel) {
+    this.name = 'Roles Service'
+  }
+
+  async createRoles(ipAddress: string, body: DTORoles): Promise<APIResponse> {
     try {
       const checkRoles: IRoles | null = await this.roles.model.findOne({ name: body.name, deletedAt: null })
-      if (checkRoles) throw apiResponse(status.BAD_REQUEST, `Role name ${body.name} already exist`)
+      if (checkRoles) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, `Role name ${body.name} already exist`)
 
       const createRoles: IRoles | null = await this.roles.model.create(body)
-      if (!createRoles) throw apiResponse(status.FORBIDDEN, 'Create new role failed')
+      if (!createRoles) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Create new role failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Create new role success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Create new role success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async getAllRoles(query: DTORolePagination): Promise<APIResponse> {
+  async getAllRoles(ipAddress: string, query: DTORolePagination): Promise<APIResponse> {
     try {
       if (!query.hasOwnProperty('limit') && !query.hasOwnProperty('offset') && !query.hasOwnProperty('sort')) {
         query.page = 10
@@ -41,7 +45,7 @@ export class RolesService {
         const getKey: any = schemaFields.find((val: string) => groupQuery.indexOf(val) !== -1 && val)
         const getValue: any = schemaFields.find((val: string) => query[val] && val)
 
-        if (!getKey && !getValue) throw apiResponse(status.BAD_REQUEST, 'filter schema field not valid')
+        if (!getKey && !getValue) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'filter schema field not valid')
 
         getAllRoles = await this.roles.model
           .find({}, { __v: 0 })
@@ -66,42 +70,42 @@ export class RolesService {
         totalPage: totalPage
       }
 
-      return Promise.resolve(apiResponse(status.OK, 'Roles already to use', getAllRoles, pagination))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Roles already to use', getAllRoles, pagination))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async getRolesById(params: DTORolesId): Promise<APIResponse> {
+  async getRolesById(ipAddress: string, params: DTORolesId): Promise<APIResponse> {
     try {
       const getRole: IRoles | null = await this.roles.model.findOne({ _id: params.id, deletedAt: null }, { __v: 0 })
-      if (!getRole) throw apiResponse(status.BAD_REQUEST, 'Role data is not exist')
+      if (!getRole) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Role data is not exist')
 
-      return Promise.resolve(apiResponse(status.OK, 'Role already to use', getRole, null))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Role already to use', getRole, null))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async deleteRolesById(params: DTORolesId): Promise<APIResponse> {
+  async deleteRolesById(ipAddress: string, params: DTORolesId): Promise<APIResponse> {
     try {
       const deleteRole: any = await this.roles.model.findOneAndUpdate({ _id: params.id, $set: { deletedAt: new Date() } })
-      if (!deleteRole) throw apiResponse(status.FORBIDDEN, 'Deleted role data failed')
+      if (!deleteRole) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Deleted role data failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Deleted role data success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Deleted role data success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async updateRolesById(body: DTORoles, params: DTORolesId): Promise<APIResponse> {
+  async updateRolesById(ipAddress: string, body: DTORoles, params: DTORolesId): Promise<APIResponse> {
     try {
       const updateRole: any = await this.roles.model.findOneAndUpdate({ _id: params.id, deletedAt: null }, { $set: { ...body } })
-      if (!updateRole) throw apiResponse(status.FORBIDDEN, 'Updated Role data failed')
+      if (!updateRole) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Updated Role data failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Updated role data success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Updated role data success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 }

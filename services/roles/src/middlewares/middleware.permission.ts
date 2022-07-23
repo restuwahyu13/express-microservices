@@ -11,7 +11,7 @@ export class PermissionMiddleware {
         const accessToken: string = (req.headers.authorization as string).split('Bearer ')[1]
         const decodedToken: Record<string, any> = await JsonWebToken.verifyToken({ accessToken, secretOrPrivateKey: process.env.JWT_SECRET_KEY as string })
 
-        if (!roles.includes(decodedToken['role'])) throw apiResponse(status.FORBIDDEN, 'Your role is not allowed')
+        if (!roles.includes(decodedToken['role'])) throw apiResponse('Roles Service', req.socket.localAddress, status.FORBIDDEN, 'Your role is not allowed')
         next()
       } catch (e: any) {
         return res.status(e.stat_code | status.FORBIDDEN).json(e)

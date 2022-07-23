@@ -1,6 +1,7 @@
 import { StatusCodes as status } from 'http-status-codes'
 import { Inject, Service, apiResponse, APIResponse, Bcrypt, IPassword, JsonWebToken, expiredAt, dateFormat } from '@node/pkg'
 import { assert } from 'is-any-type'
+import { AddressInfo } from 'net'
 
 import { UsersModel } from '@models/model.users'
 import { SecretsModel } from '@models/model.secrets'
@@ -12,15 +13,19 @@ import { DTOLogin, DTORegister, DTOUsersId, DTOUsers, DTOHealthToken, DTORevokeT
 
 @Service()
 export class UsersService {
-  constructor(@Inject('UsersModel') private users: UsersModel, @Inject('SecretsModel') private secrets: SecretsModel, @Inject('RolesModel') private roles: RolesModel) {}
+  private name: string
 
-  async registerUsers(body: DTORegister): Promise<APIResponse> {
+  constructor(@Inject('UsersModel') private users: UsersModel, @Inject('SecretsModel') private secrets: SecretsModel, @Inject('RolesModel') private roles: RolesModel) {
+    this.name = 'Users Service'
+  }
+
+  async registerUsers(ipAddress: string, body: DTORegister): Promise<APIResponse> {
     try {
       const checkUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null })
-      if (checkUser) throw apiResponse(status.BAD_REQUEST, `Email ${body.email} already taken`)
+      if (checkUser) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, `Email ${body.email} already taken`)
 
       const checkRoleName: IRoles = await this.roles.model.findOne({ name: body.role })
-      if (!checkRoleName) throw apiResponse(status.BAD_REQUEST, `Role name ${body.role} is not exist`)
+      if (!checkRoleName) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, `Role name ${body.role} is not exist`)
 
       if (checkRoleName.name == 'admin') body.active = true
       else body.active = true
@@ -28,23 +33,24 @@ export class UsersService {
       body.password = Bcrypt.hashPassword(body.password)
 
       const createUsers: IUsers = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
-      if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Register new user account failed')
+      if (!createUsers) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Register new user account failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Register new user account success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Register new user account success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async loginUsers(body: DTOLogin): Promise<APIResponse> {
+  async loginUsers(ipAddress: string, body: DTOLogin): Promise<APIResponse> {
+    console.log(this.name)
     try {
       const getUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
-      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Email is not registered')
-      if (!getUser.active) throw apiResponse(status.BAD_REQUEST, 'User account is not active, please contact admin')
+      if (!getUser) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Email is not registered')
+      if (!getUser.active) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'User account is not active, please contact admin')
 
       const isCompare: IPassword = await Bcrypt.comparePassword(body.password, getUser.password)
-      if (!isCompare.success) throw apiResponse(status.BAD_REQUEST, 'Email or password failed')
+      if (!isCompare.success) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Email or password failed')
 
       const token: Record<string, any> = JsonWebToken.signToken({
         payload: { id: getUser._id, email: getUser.email, role: getUser.roleId['name'] },
@@ -69,18 +75,18 @@ export class UsersService {
         role: getUser.roleId['name']
       }
 
-      return Promise.resolve(apiResponse(status.OK, 'Login success', loginRes, null))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Login success', loginRes, null))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async refreshTokenUsers(body: DTORefreshToken): Promise<APIResponse> {
+  async refreshTokenUsers(ipAddress: string, body: DTORefreshToken): Promise<APIResponse> {
     try {
       const getAccessToken: ISecrets = await this.secrets.model.findOne({ accessToken: body.accessToken, resourceType: 'login' }).sort({ _id: -1 })
 
-      if (!getAccessToken) throw apiResponse(status.BAD_REQUEST, 'AccessToken is not exist')
-      if (dateFormat(getAccessToken.expiredAt) > dateFormat(new Date())) throw apiResponse(status.BAD_REQUEST, 'Your accessToken is not expired')
+      if (!getAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken is not exist')
+      if (dateFormat(getAccessToken.expiredAt) > dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Your accessToken is not expired')
 
       const getUser: IUsers = await this.users.model.findOne({ _id: getAccessToken.resourceBy, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
@@ -104,63 +110,63 @@ export class UsersService {
         role: getUser.roleId['name']
       }
 
-      return Promise.resolve(apiResponse(status.OK, 'Refresh accessToken success', tokenRes, null))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Refresh accessToken success', tokenRes, null))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async healthTokenUsers(body: DTOHealthToken): Promise<APIResponse> {
+  async healthTokenUsers(ipAddress: string, body: DTOHealthToken): Promise<APIResponse> {
     try {
-      if (assert.isUndefined(body as any)) throw apiResponse(status.BAD_REQUEST, 'AccessToken expired')
+      if (assert.isUndefined(body as any)) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
       const getAccessToken: ISecrets = await this.secrets.model.findOne({ resourceBy: body.id }).sort({ _id: -1 })
 
-      if (!getAccessToken) throw apiResponse(status.BAD_REQUEST, 'AccessToken is not exist')
-      if (dateFormat(getAccessToken.expiredAt) < dateFormat(new Date())) throw apiResponse(status.BAD_REQUEST, 'AccessToken expired')
+      if (!getAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken is not exist')
+      if (dateFormat(getAccessToken.expiredAt) < dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
 
-      return Promise.resolve(apiResponse(status.OK, 'AccessToken healthy'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'AccessToken healthy'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async revokeTokenUsers(body: DTORevokeToken): Promise<APIResponse> {
+  async revokeTokenUsers(ipAddress: string, body: DTORevokeToken): Promise<APIResponse> {
     try {
-      if (assert.isUndefined(body as any)) throw apiResponse(status.BAD_REQUEST, 'AccessToken expired')
+      if (assert.isUndefined(body as any)) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
       const getAccessToken: ISecrets = await this.secrets.model.findOne({ resourceBy: body.id }).sort({ _id: -1 })
 
-      if (!getAccessToken) throw apiResponse(status.BAD_REQUEST, 'AccessToken is not exist')
-      if (dateFormat(getAccessToken.expiredAt) < dateFormat(new Date())) throw apiResponse(status.BAD_REQUEST, 'AccessToken expired')
+      if (!getAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken is not exist')
+      if (dateFormat(getAccessToken.expiredAt) < dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
 
       const deleteAccessToken: ISecrets = await this.secrets.model.findByIdAndDelete(getAccessToken._id)
-      if (!deleteAccessToken) throw apiResponse(status.BAD_REQUEST, 'Revoke accessToken failed')
+      if (!deleteAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Revoke accessToken failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Revoke accessToken success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Revoke accessToken success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async createUsers(body: DTOUsers): Promise<APIResponse> {
+  async createUsers(ipAddress: string, body: DTOUsers): Promise<APIResponse> {
     try {
       const checkUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null })
-      if (!checkUser) throw apiResponse(status.BAD_REQUEST, 'Email already taken')
+      if (!checkUser) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Email already taken')
 
       const checkRoleName: IRoles = await this.roles.model.findOne({ name: body.role })
-      if (!checkRoleName) throw apiResponse(status.BAD_REQUEST, `Role name ${body.role} is not exist`)
+      if (!checkRoleName) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, `Role name ${body.role} is not exist`)
 
       body.password = Bcrypt.hashPassword(body.password)
 
       const createUsers: IUsers = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
-      if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Create new users account failed')
+      if (!createUsers) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Create new users account failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Create new users account success', 'checkUser', null))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Create new users account success', 'checkUser', null))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async getAllUsers(query: DTOUsersPagination): Promise<APIResponse> {
+  async getAllUsers(ipAddress: string, query: DTOUsersPagination): Promise<APIResponse> {
     try {
       if (!query.hasOwnProperty('limit') && !query.hasOwnProperty('offset') && !query.hasOwnProperty('sort')) {
         query.page = 10
@@ -178,7 +184,7 @@ export class UsersService {
         const getKey: any = schemaFields.find((val: string) => groupQuery.indexOf(val) !== -1 && val)
         const getValue: any = schemaFields.find((val: string) => query[val] && val)
 
-        if (!getKey && !getValue) throw apiResponse(status.BAD_REQUEST, 'filter schema field not valid')
+        if (!getKey && !getValue) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'filter schema field not valid')
 
         getAllUsers = await this.users.model
           .find({}, { __v: 0 })
@@ -203,42 +209,42 @@ export class UsersService {
         totalPage: totalPage
       }
 
-      return Promise.resolve(apiResponse(status.OK, 'Users already to use', getAllUsers, pagination))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Users already to use', getAllUsers, pagination))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async getUsersById(params: DTOUsersId): Promise<APIResponse> {
+  async getUsersById(ipAddress: string, params: DTOUsersId): Promise<APIResponse> {
     try {
       const getUser: IUsers = await this.users.model.findOne({ _id: params.id, deletedAt: null }, { __v: 0 })
-      if (!getUser) throw apiResponse(status.BAD_REQUEST, 'User data is not exist')
+      if (!getUser) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'User data is not exist')
 
-      return Promise.resolve(apiResponse(status.OK, 'User already to use', getUser, null))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'User already to use', getUser, null))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async deleteUsersById(params: DTOUsersId): Promise<APIResponse> {
+  async deleteUsersById(ipAddress: string, params: DTOUsersId): Promise<APIResponse> {
     try {
       const deleteUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: null }, { active: false, deletedAt: new Date() })
-      if (!deleteUser) throw apiResponse(status.FORBIDDEN, 'Deleted users data failed')
+      if (!deleteUser) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Deleted users data failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Deleted users data success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Deleted users data success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async updateUsersById(body: DTOUsers, params: DTOUsersId): Promise<APIResponse> {
+  async updateUsersById(ipAddress: string, body: DTOUsers, params: DTOUsersId): Promise<APIResponse> {
     try {
       const updateUser: any = await this.users.model.findOneAndUpdate({ _id: params.id, deletedAt: null }, { $set: { ...body } })
-      if (!updateUser) throw apiResponse(status.FORBIDDEN, 'Updated users data failed')
+      if (!updateUser) throw apiResponse(this.name, ipAddress, status.FORBIDDEN, 'Updated users data failed')
 
-      return Promise.resolve(apiResponse(status.OK, 'Updated users data success'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Updated users data success'))
     } catch (e: any) {
-      return Promise.reject(apiResponse(e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
+      return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 }

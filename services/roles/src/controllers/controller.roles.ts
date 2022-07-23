@@ -11,7 +11,7 @@ export class RolesController {
   createRoles(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.createRoles(req.body)
+        const response: APIResponse = await this.service.createRoles(req.socket.localAddress, req.body)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -22,7 +22,7 @@ export class RolesController {
   getAllRoles(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.getAllRoles(req.query as any)
+        const response: APIResponse = await this.service.getAllRoles(req.socket.localAddress, req.query as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -33,7 +33,7 @@ export class RolesController {
   getRolesById(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.getRolesById(req.params as any)
+        const response: APIResponse = await this.service.getRolesById(req.socket.localAddress, req.params as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -44,7 +44,7 @@ export class RolesController {
   deleteRolesById(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.deleteRolesById(req.params as any)
+        const response: APIResponse = await this.service.deleteRolesById(req.socket.localAddress, req.params as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
@@ -55,7 +55,7 @@ export class RolesController {
   updateRolesById(): Handler {
     return async (req: Request, res: Response, next: NextFunction): Promise<OutgoingMessage> => {
       try {
-        const response: APIResponse = await this.service.updateRolesById(req.body, req.params as any)
+        const response: APIResponse = await this.service.updateRolesById(req.socket.localAddress, req.body, req.params as any)
         return res.status(response.stat_code).json(response)
       } catch (e: any) {
         return res.status(e.stat_code).json(e)
