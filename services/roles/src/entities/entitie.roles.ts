@@ -4,7 +4,6 @@ import { Schema, SchemaDefinitionProperty } from 'mongoose'
 export class DatabaseSchema extends Schema {
   name: SchemaDefinitionProperty = {
     type: String,
-    unique: true,
     trim: true,
     required: true
   }

@@ -16,7 +16,7 @@ export class UsersService {
 
   async registerUsers(body: DTORegister): Promise<APIResponse> {
     try {
-      const checkUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null })
+      const checkUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null })
       if (checkUser) throw apiResponse(status.BAD_REQUEST, `Email ${body.email} already taken`)
 
       const checkRoleName: IRoles = await this.roles.model.findOne({ name: body.role })
@@ -27,7 +27,7 @@ export class UsersService {
 
       body.password = Bcrypt.hashPassword(body.password)
 
-      const createUsers: IUsers | null = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
+      const createUsers: IUsers = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
       if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Register new user account failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Register new user account success'))
@@ -38,7 +38,7 @@ export class UsersService {
 
   async loginUsers(body: DTOLogin): Promise<APIResponse> {
     try {
-      const getUser: IUsers | null = await this.users.model.findOne({ email: body.email, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
+      const getUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
       if (!getUser) throw apiResponse(status.BAD_REQUEST, 'Email is not registered')
       if (!getUser.active) throw apiResponse(status.BAD_REQUEST, 'User account is not active, please contact admin')
@@ -82,10 +82,7 @@ export class UsersService {
       if (!getAccessToken) throw apiResponse(status.BAD_REQUEST, 'AccessToken is not exist')
       if (dateFormat(getAccessToken.expiredAt) > dateFormat(new Date())) throw apiResponse(status.BAD_REQUEST, 'Your accessToken is not expired')
 
-      const getUser: IUsers | null = await this.users.model
-        .findOne({ _id: getAccessToken.resourceBy, deletedAt: null })
-        .populate({ path: 'roleId', select: '_id name', model: this.roles.model })
-        .lean()
+      const getUser: IUsers = await this.users.model.findOne({ _id: getAccessToken.resourceBy, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
       const token: string = JsonWebToken.refreshToken({
         payload: { id: getUser._id, email: getUser.email, role: getUser.roleId['name'] },
@@ -154,7 +151,7 @@ export class UsersService {
 
       body.password = Bcrypt.hashPassword(body.password)
 
-      const createUsers: IUsers | null = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
+      const createUsers: IUsers = await this.users.model.create({ name: body.name, email: body.email, password: body.password, active: body.active, roleId: checkRoleName._id })
       if (!createUsers) throw apiResponse(status.FORBIDDEN, 'Create new users account failed')
 
       return Promise.resolve(apiResponse(status.OK, 'Create new users account success', 'checkUser', null))
@@ -213,7 +210,7 @@ export class UsersService {
 
   async getUsersById(params: DTOUsersId): Promise<APIResponse> {
     try {
-      const getUser: IUsers | null = await this.users.model.findOne({ _id: params.id, deletedAt: null }, { __v: 0 })
+      const getUser: IUsers = await this.users.model.findOne({ _id: params.id, deletedAt: null }, { __v: 0 })
       if (!getUser) throw apiResponse(status.BAD_REQUEST, 'User data is not exist')
 
       return Promise.resolve(apiResponse(status.OK, 'User already to use', getUser, null))
