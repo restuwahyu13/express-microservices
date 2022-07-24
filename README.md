@@ -2,6 +2,8 @@
 
 Example simple setup miroservices nodejs, using express framework + typescript + mongodb, if you want to deploy this app into your docker hub registry with your account, you must log in before push image into docker registry, typing in your terminal like this `docker login` and put your username and password, after login success, you must build this app into docker image, after build image container success, you can push this image into docker hub registry with your account, if you need free cloud database check here [Clever Cloud](https://www.clever-cloud.com).
 
+<img src="Untitled Diagram.jpg"/>
+
 ## App Lifecycle Command
 
 - **Single Install Dependency App Roles, Users Or Shared Libs**
