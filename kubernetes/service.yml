@@ -90,7 +90,7 @@ spec:
           image: docker.io/705471/roles-service:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 3000
+            - containerPort: 3001
           resources:
             requests:
               memory: '256Mi'
@@ -103,8 +103,8 @@ spec:
 # KUBERNETES SERVICE - PROXY SERVICE
 ####################################
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: proxy
   labels:
@@ -112,17 +112,18 @@ metadata:
 spec:
   selector:
     name: proxy
-  type: LoadBalancer
   ports:
     - name: proxy-service
+      protocol: TCP
       port: 80
       targetPort: 80
+  type: ClusterIP
 ####################################
 # KUBERNETES SERVICE - USERS SERVICE
 ####################################
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: users
   labels:
@@ -130,17 +131,18 @@ metadata:
 spec:
   selector:
     name: users
-  type: LoadBalancer
   ports:
     - name: users-service
+      protocol: TCP
       port: 3000
       targetPort: 3000
+  type: ClusterIP
 ####################################
 # KUBERNETES SERVICE - ROLES SERVICE
 ####################################
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: roles
   labels:
@@ -148,8 +150,9 @@ metadata:
 spec:
   selector:
     name: roles
-  type: LoadBalancer
   ports:
     - name: roles-service
-      port: 3000
-      targetPort: 3000
+      protocol: TCP
+      port: 3100
+      targetPort: 3001
+  type: ClusterIP

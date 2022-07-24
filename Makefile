@@ -1,7 +1,7 @@
 dk-build:
-	docker build -f Dockerfile.users --tag users-service:latest --network host --compress .
-	docker build -f Dockerfile.roles --tag roles-service:latest --network host --compress .
-	docker build -f Dockerfile.nginx --tag proxy-service:latest --network host --compress .
+	docker build -f ./docker/Dockerfile.users --tag users-service:latest --network host --compress .
+	docker build -f ./docker/Dockerfile.roles --tag roles-service:latest --network host --compress .
+	docker build -f ./docker/Dockerfile.nginx --tag proxy-service:latest --network host --compress .
 	docker tag users-service:latest 705471/users-service:latest
 	docker tag roles-service:latest 705471/roles-service:latest
 	docker tag proxy-service:latest 705471/proxy-service:latest
@@ -17,10 +17,10 @@ dk-run:
 	docker run --name proxy-service -p 80:80 --restart always --link users-service --link  roles-service -d 705471/proxy-service:latest
 
 kb-create:
-	kubectl create -f kubernetes.yml
+	kubectl create -f ./kubernetes/service.yml
 
 kb-apply:
-	kubectl apply -f kubernetes.yml
+	kubectl apply -f ./kubernetes/ingress.yml
 
-kb-drop:
-	kubectl delete -f kubernetes.yml
+kb-delete:
+	kubectl delete -f ./kubernetes/service.yml

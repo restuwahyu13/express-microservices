@@ -4,9 +4,9 @@
 FROM node:16.16.0-buster as image
 USER ${USER}
 WORKDIR /usr/src/app
-COPY ./package.*json /usr/src/app
-COPY . /usr/src/app
-RUN rm -rfd /usr/src/app/services/users
+COPY ${PWD}/package.*json /usr/src/app
+COPY ${PWD} /usr/src/app
+RUN rm -rfd /usr/src/app/services/roles
 
 ####################################
 # STEP TWO - UPGRADE SYSTEM
@@ -28,12 +28,12 @@ RUN npm cache clean -f \
   && npm install --log-level verbose \
   && npm run install:shared \
   && npm run build:shared \
-  && npm run install:roles \
-  && npm run build:roles
+  && npm run install:users \
+  && npm run build:users
 
 ####################################
 # STEP FOUR - EXPOSE PORT
 ####################################
 FROM install
 EXPOSE 3000
-CMD npm run start:roles
+CMD npm run start:users
