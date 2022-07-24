@@ -4,10 +4,13 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
   name: proxy-ingress
   labels:
     name: proxy-ingress
 spec:
+  ingressClassName: nginx
   rules:
     - host: node-microservice.local
       http:
