@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: proxy-service
-          image: docker.io/705471/proxy-service:latest
+          image: docker.io/705471/proxy-service
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -53,7 +53,7 @@ spec:
     spec:
       containers:
         - name: users-service
-          image: docker.io/705471/users-service:latest
+          image: docker.io/705471/users-service
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -87,7 +87,7 @@ spec:
     spec:
       containers:
         - name: roles-service
-          image: docker.io/705471/roles-service:latest
+          image: docker.io/705471/roles-service
           imagePullPolicy: Always
           ports:
             - containerPort: 3001
