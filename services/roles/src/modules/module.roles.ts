@@ -3,6 +3,7 @@ import { RolesService } from '@services/service.roles'
 import { RolesController } from '@controllers/controller.roles'
 import { RolesRoute } from '@routes/route.roles'
 import { RolesModel } from '@models/model.roles'
+import { SecretsModel } from '@models/model.secrets'
 import { AuthMiddleware } from '@middlewares/middleware.auth'
 import { PermissionMiddleware } from '@middlewares/middleware.permission'
 
@@ -11,6 +12,7 @@ import { PermissionMiddleware } from '@middlewares/middleware.permission'
   { token: 'RolesController', useClass: RolesController },
   { token: 'RolesRoute', useClass: RolesRoute },
   { token: 'RolesModel', useClass: RolesModel },
+  { token: 'SecretsModel', useClass: SecretsModel },
   { token: 'AuthMiddleware', useClass: AuthMiddleware },
   { token: 'PermissionMiddleware', useClass: PermissionMiddleware }
 ])

@@ -42,7 +42,6 @@ export class UsersService {
   }
 
   async loginUsers(ipAddress: string, body: DTOLogin): Promise<APIResponse> {
-    console.log(this.name)
     try {
       const getUser: IUsers = await this.users.model.findOne({ email: body.email, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
@@ -86,7 +85,7 @@ export class UsersService {
       const getAccessToken: ISecrets = await this.secrets.model.findOne({ accessToken: body.accessToken, resourceType: 'login' }).sort({ _id: -1 })
 
       if (!getAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken is not exist')
-      if (dateFormat(getAccessToken.expiredAt) > dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Your accessToken is not expired')
+      if (dateFormat(getAccessToken.expiredAt) > dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.OK, 'Your accessToken is not expired')
 
       const getUser: IUsers = await this.users.model.findOne({ _id: getAccessToken.resourceBy, deletedAt: null }).populate({ path: 'roleId', select: '_id name', model: this.roles.model }).lean()
 
@@ -98,10 +97,7 @@ export class UsersService {
 
       const isAccessTokenExpired: string = expiredAt(1, 'days')
       await this.secrets.model.findByIdAndUpdate(getAccessToken._id, {
-        accessToken: token,
-        resourceType: 'login',
-        resourceBy: getUser._id,
-        expiredAt: isAccessTokenExpired
+        $set: { accessToken: token, resourceType: 'login', resourceBy: getUser._id, expiredAt: isAccessTokenExpired }
       })
 
       const tokenRes: Record<string, any> = {
@@ -116,29 +112,23 @@ export class UsersService {
     }
   }
 
-  async healthTokenUsers(ipAddress: string, body: DTOHealthToken): Promise<APIResponse> {
+  async healthTokenUsers(ipAddress: string, user: DTOHealthToken): Promise<APIResponse> {
     try {
-      if (assert.isUndefined(body as any)) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
-      const getAccessToken: ISecrets = await this.secrets.model.findOne({ resourceBy: body.id }).sort({ _id: -1 })
+      if (assert.isUndefined(user as any)) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
+      const getAccessToken: ISecrets = await this.secrets.model.findOne({ resourceBy: user.id }).sort({ _id: -1 })
 
       if (!getAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken is not exist')
       if (dateFormat(getAccessToken.expiredAt) < dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
 
-      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'AccessToken healthy'))
+      return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Health accessToken success'))
     } catch (e: any) {
       return Promise.reject(apiResponse(this.name, ipAddress, e.stat_code || status.BAD_REQUEST, e.stat_message || e.message))
     }
   }
 
-  async revokeTokenUsers(ipAddress: string, body: DTORevokeToken): Promise<APIResponse> {
+  async revokeTokenUsers(ipAddress: string, user: DTORevokeToken): Promise<APIResponse> {
     try {
-      if (assert.isUndefined(body as any)) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
-      const getAccessToken: ISecrets = await this.secrets.model.findOne({ resourceBy: body.id }).sort({ _id: -1 })
-
-      if (!getAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken is not exist')
-      if (dateFormat(getAccessToken.expiredAt) < dateFormat(new Date())) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'AccessToken expired')
-
-      const deleteAccessToken: ISecrets = await this.secrets.model.findByIdAndDelete(getAccessToken._id)
+      const deleteAccessToken: ISecrets = await this.secrets.model.findOneAndDelete({ resourceBy: user.id }).sort({ _id: -1 })
       if (!deleteAccessToken) throw apiResponse(this.name, ipAddress, status.BAD_REQUEST, 'Revoke accessToken failed')
 
       return Promise.resolve(apiResponse(this.name, ipAddress, status.OK, 'Revoke accessToken success'))
