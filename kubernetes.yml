@@ -8,7 +8,7 @@ metadata:
   labels:
     name: proxy
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       name: proxy
@@ -19,15 +19,15 @@ spec:
     spec:
       containers:
         - name: proxy-service
-          image: docker.io/705471/proxy-service
+          image: docker.io/705471/proxy-service:latest
           ports:
             - containerPort: 80
           resources:
             requests:
-              memory: '512Mi'
+              memory: '256Mi'
               cpu: '256m'
             limits:
-              memory: '1Gi'
+              memory: '512Mi'
               cpu: '512m'
       restartPolicy: Always
 ####################################
@@ -41,7 +41,7 @@ metadata:
   labels:
     name: users
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       name: users
@@ -52,21 +52,16 @@ spec:
     spec:
       containers:
         - name: users-service
-          image: docker.io/705471/users-service
+          image: docker.io/705471/users-service:latest
           ports:
             - containerPort: 3000
           resources:
             requests:
-              memory: '512Mi'
+              memory: '256Mi'
               cpu: '256m'
             limits:
-              memory: '1Gi'
+              memory: '512Mi'
               cpu: '512m'
-          volumeMounts:
-            - mountPath: /usr/src/app/users
-              name: users-service
-      volumes:
-        - name: users-service
       restartPolicy: Always
 ####################################
 # KUBERNETES PODS - ROLES SERVICE
@@ -79,7 +74,7 @@ metadata:
   labels:
     name: roles
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       name: roles
@@ -90,21 +85,16 @@ spec:
     spec:
       containers:
         - name: roles-service
-          image: docker.io/705471/roles-service
+          image: docker.io/705471/roles-service:latest
           ports:
             - containerPort: 3000
           resources:
             requests:
-              memory: '512Mi'
+              memory: '256Mi'
               cpu: '256m'
             limits:
-              memory: '1Gi'
+              memory: '512Mi'
               cpu: '512m'
-          volumeMounts:
-            - mountPath: /usr/src/app/roles
-              name: roles-service
-      volumes:
-        - name: roles-service
       restartPolicy: Always
 ####################################
 # KUBERNETES SERVICE - PROXY SERVICE
