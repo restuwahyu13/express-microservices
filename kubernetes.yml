@@ -6,16 +6,16 @@ kind: Deployment
 metadata:
   name: proxy
   labels:
-    run: proxy
+    name: proxy
 spec:
   replicas: 2
   selector:
     matchLabels:
-      run: proxy
+      name: proxy
   template:
     metadata:
       labels:
-        run: proxy
+        name: proxy
     spec:
       containers:
         - name: proxy-service
@@ -39,16 +39,16 @@ kind: Deployment
 metadata:
   name: users
   labels:
-    run: users
+    name: users
 spec:
   replicas: 2
   selector:
     matchLabels:
-      run: users
+      name: users
   template:
     metadata:
       labels:
-        run: users
+        name: users
     spec:
       containers:
         - name: users-service
@@ -77,16 +77,16 @@ kind: Deployment
 metadata:
   name: roles
   labels:
-    run: roles
+    name: roles
 spec:
   replicas: 2
   selector:
     matchLabels:
-      run: roles
+      name: roles
   template:
     metadata:
       labels:
-        run: roles
+        name: roles
     spec:
       containers:
         - name: roles-service
@@ -118,7 +118,7 @@ metadata:
     name: proxy
 spec:
   selector:
-    run: proxy
+    name: proxy
   type: LoadBalancer
   ports:
     - name: proxy-service
@@ -136,7 +136,7 @@ metadata:
     name: users
 spec:
   selector:
-    run: users
+    name: users
   type: LoadBalancer
   ports:
     - name: users-service
@@ -154,7 +154,7 @@ metadata:
     name: roles
 spec:
   selector:
-    run: roles
+    name: roles
   type: LoadBalancer
   ports:
     - name: roles-service
