@@ -107,7 +107,7 @@ spec:
         - name: roles-service
       restartPolicy: Always
 ####################################
-# KUBERNETES NODE - PROXY SERVICE
+# KUBERNETES SERVICE - PROXY SERVICE
 ####################################
 ---
 kind: Service
@@ -125,7 +125,7 @@ spec:
       port: 80
       targetPort: 80
 ####################################
-# KUBERNETES NODE - USERS SERVICE
+# KUBERNETES SERVICE - USERS SERVICE
 ####################################
 ---
 kind: Service
@@ -143,7 +143,7 @@ spec:
       port: 3000
       targetPort: 3000
 ####################################
-# KUBERNETES NODE - ROLES SERVICE
+# KUBERNETES SERVICE - ROLES SERVICE
 ####################################
 ---
 kind: Service
