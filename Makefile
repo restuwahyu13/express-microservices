@@ -16,6 +16,12 @@ dk-run:
 	docker run --name roles-service -p 3001:3001 --restart always --env-file ./services/roles/.env -d 705471/roles-service:latest
 	docker run --name proxy-service -p 80:80 --restart always --link users-service --link  roles-service -d 705471/proxy-service:latest
 
+dc-up:
+	docker-compose up -d --remove-orphans --build
+
+dc-down:
+	docker-compose down
+
 kb-create:
 	kubectl create -f ./kubernetes/service.yml
 

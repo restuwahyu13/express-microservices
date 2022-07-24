@@ -14,7 +14,8 @@
 		"dev:users": "npm run dev --prefix services/users",
 		"dev:roles": "npm run dev --prefix services/roles",
 		"install": "npm-run-all -p install:*",
-		"build": "npm-run-all -p build:*"
+		"build": "npm-run-all -p build:*",
+		"dev": "npm-run-all -p dev:*"
 	},
 	"author": {
 		"name": "Restu Wahyu Saputra",
