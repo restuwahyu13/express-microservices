@@ -1,4 +1,7 @@
 ---
+####################################
+# KUBERNETES PODS - PROXY SERVICE
+####################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,6 +26,9 @@ spec:
             - containerPort: 80
               name: proxy-service
       restartPolicy: Always
+####################################
+# KUBERNETES PODS - USERS SERVICE
+####################################
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -53,6 +59,9 @@ spec:
       volumes:
         - name: users
       restartPolicy: Always
+####################################
+# KUBERNETES PODS - ROLES SERVICE
+####################################
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -83,6 +92,9 @@ spec:
       volumes:
         - name: roles
       restartPolicy: Always
+####################################
+# KUBERNETES NODE - PROXY SERVICE
+####################################
 ---
 kind: Service
 apiVersion: v1
@@ -98,6 +110,9 @@ spec:
     - name: proxy-service
       port: 80
       targetPort: 80
+####################################
+# KUBERNETES NODE - USERS SERVICE
+####################################
 ---
 kind: Service
 apiVersion: v1
@@ -113,6 +128,9 @@ spec:
     - name: users-service
       port: 3000
       targetPort: 3000
+####################################
+# KUBERNETES NODE - ROLES SERVICE
+####################################
 ---
 kind: Service
 apiVersion: v1
