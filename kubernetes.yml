@@ -1,4 +1,3 @@
----
 ####################################
 # KUBERNETES PODS - PROXY SERVICE
 ####################################
@@ -7,24 +6,29 @@ kind: Deployment
 metadata:
   name: proxy
   labels:
-    name: proxy
+    run: proxy
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       run: proxy
   template:
     metadata:
       labels:
-        name: proxy
+        run: proxy
     spec:
       containers:
-        - image: proxy-service:latest
-          name: proxy-service
-          resources:
+        - name: proxy-service
+          image: docker.io/705471/proxy-service
           ports:
             - containerPort: 80
-              name: proxy-service
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '256m'
+            limits:
+              memory: '1Gi'
+              cpu: '512m'
       restartPolicy: Always
 ####################################
 # KUBERNETES PODS - USERS SERVICE
@@ -35,29 +39,34 @@ kind: Deployment
 metadata:
   name: users
   labels:
-    name: users
+    run: users
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       run: users
   template:
     metadata:
       labels:
-        name: users
+        run: users
     spec:
       containers:
-        - image: users-service:latest
-          name: users-service
-          resources:
+        - name: users-service
+          image: docker.io/705471/users-service
           ports:
             - containerPort: 3000
-              name: users-service
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '256m'
+            limits:
+              memory: '1Gi'
+              cpu: '512m'
           volumeMounts:
             - mountPath: /usr/src/app/users
-              name: users
+              name: users-service
       volumes:
-        - name: users
+        - name: users-service
       restartPolicy: Always
 ####################################
 # KUBERNETES PODS - ROLES SERVICE
@@ -68,29 +77,34 @@ kind: Deployment
 metadata:
   name: roles
   labels:
-    name: roles
+    run: roles
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       run: roles
   template:
     metadata:
       labels:
-        name: roles
+        run: roles
     spec:
       containers:
-        - image: roles-service:latest
-          name: roles-service
-          resources:
+        - name: roles-service
+          image: docker.io/705471/roles-service
           ports:
             - containerPort: 3000
-              name: roles-service
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '256m'
+            limits:
+              memory: '1Gi'
+              cpu: '512m'
           volumeMounts:
             - mountPath: /usr/src/app/roles
-              name: roles
+              name: roles-service
       volumes:
-        - name: roles
+        - name: roles-service
       restartPolicy: Always
 ####################################
 # KUBERNETES NODE - PROXY SERVICE
@@ -99,12 +113,12 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: Proxy Service
+  name: proxy
   labels:
     name: proxy
 spec:
   selector:
-    app: proxy
+    run: proxy
   type: LoadBalancer
   ports:
     - name: proxy-service
@@ -122,7 +136,7 @@ metadata:
     name: users
 spec:
   selector:
-    app: users
+    run: users
   type: LoadBalancer
   ports:
     - name: users-service
@@ -140,7 +154,7 @@ metadata:
     name: roles
 spec:
   selector:
-    app: roles
+    run: roles
   type: LoadBalancer
   ports:
     - name: roles-service
