@@ -83,6 +83,9 @@ class App {
 
   private async globalRoute(): Promise<void> {
     this.app.all(['/', '/api/v1'], (req: Request, res: Response): OutgoingMessage => res.status(status.OK).json(apiResponse('Roles Service', req.socket.localAddress, status.OK, 'Server Ping !')))
+    this.app.all('**', (req: Request, res: Response): OutgoingMessage => {
+      return res.status(status.NOT_FOUND).json(apiResponse('Users Service', req.socket.localAddress, status.NOT_FOUND, 'Route path is not exist on server', { hostname: req.hostname, path: req.path }, null))
+    })
   }
 
   private async run(): Promise<void> {

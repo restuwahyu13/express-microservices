@@ -1,0 +1,130 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy
+  labels:
+    name: proxy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: proxy
+  template:
+    metadata:
+      labels:
+        name: proxy
+    spec:
+      containers:
+        - image: proxy-service:latest
+          name: proxy-service
+          resources:
+          ports:
+            - containerPort: 80
+              name: proxy-service
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users
+  labels:
+    name: users
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: users
+  template:
+    metadata:
+      labels:
+        name: users
+    spec:
+      containers:
+        - image: users-service:latest
+          name: users-service
+          resources:
+          ports:
+            - containerPort: 3000
+              name: users-service
+          volumeMounts:
+            - mountPath: /usr/src/app/users
+              name: users
+      volumes:
+        - name: users
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roles
+  labels:
+    name: roles
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: roles
+  template:
+    metadata:
+      labels:
+        name: roles
+    spec:
+      containers:
+        - image: roles-service:latest
+          name: roles-service
+          resources:
+          ports:
+            - containerPort: 3000
+              name: roles-service
+          volumeMounts:
+            - mountPath: /usr/src/app/roles
+              name: roles
+      volumes:
+        - name: roles
+      restartPolicy: Always
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: Proxy Service
+  labels:
+    name: proxy
+spec:
+  selector:
+    app: proxy
+  type: LoadBalancer
+  ports:
+    - name: proxy-service
+      port: 80
+      targetPort: 80
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: users
+  labels:
+    name: users
+spec:
+  selector:
+    app: users
+  type: LoadBalancer
+  ports:
+    - name: users-service
+      port: 3000
+      targetPort: 3000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: roles
+  labels:
+    name: roles
+spec:
+  selector:
+    app: roles
+  type: LoadBalancer
+  ports:
+    - name: roles-service
+      port: 3000
+      targetPort: 3000

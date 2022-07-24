@@ -7,3 +7,6 @@ dk-run:
 	docker run --name users-service -p 3000:3000 --restart always --env-file ./services/users/.env -d users-service:latest
 	docker run --name roles-service -p 3001:3001 --restart always --env-file ./services/roles/.env -d roles-service:latest
 	docker run --name proxy-service -p 80:80 --restart always --link users-service --link  roles-service -d proxy-service:latest
+
+kb-run:
+	kubectl
