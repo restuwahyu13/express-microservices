@@ -19,5 +19,8 @@ dk-run:
 kb-create:
 	kubectl create -f kubernetes.yml
 
+kb-apply:
+	kubectl apply -f kubernetes.yml
+
 kb-drop:
 	kubectl delete -f kubernetes.yml

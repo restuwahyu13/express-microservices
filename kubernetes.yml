@@ -20,6 +20,7 @@ spec:
       containers:
         - name: proxy-service
           image: docker.io/705471/proxy-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           resources:
@@ -53,6 +54,7 @@ spec:
       containers:
         - name: users-service
           image: docker.io/705471/users-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:
@@ -86,6 +88,7 @@ spec:
       containers:
         - name: roles-service
           image: docker.io/705471/roles-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:
