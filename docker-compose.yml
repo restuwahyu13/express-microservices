@@ -5,7 +5,7 @@ services:
   #######################################
   users:
     build:
-      context: .
+      context: ./docker
       dockerfile: Dockerfile.users
     restart: always
     ports:
@@ -21,7 +21,7 @@ services:
   #######################################
   roles:
     build:
-      context: .
+      context: ./docker
       dockerfile: Dockerfile.roles
     restart: always
     ports:
@@ -37,7 +37,7 @@ services:
   #############################
   proxy:
     build:
-      context: .
+      context: ./docker
       dockerfile: Dockerfile.nginx
     restart: always
     ports:
@@ -50,11 +50,6 @@ services:
       - ${PWD}/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - node-microservices
-# #############################
-# # VOLUME PERSISTENT DATA
-# #############################
-volumes:
-  database:
 #############################
 # NETWORKS SHARING GROUP
 #############################

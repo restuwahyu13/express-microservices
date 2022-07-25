@@ -45,7 +45,7 @@ $ make dc-up
 
 - **Compose Down Container**
 ```sh
-$ make dc-up
+$ make dc-down
 ```
 
 - **Build Docker Image**
